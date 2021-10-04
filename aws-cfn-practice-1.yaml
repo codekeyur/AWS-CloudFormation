@@ -1,0 +1,25 @@
+#Template to Lauch EC2 instance with specific security groups
+#Meaning this template has multiple resources and some of these are dependent on other so they must be created
+#first (Here: Security groups needs to be created first before lauching an EC2.)
+
+Resources: 
+ myEC2Instance:
+   Type: AWS::EC2::Instance
+   Properties:
+     InstanceType: t2.micro
+     Tags:
+       - Key: "Nanem" 
+         Value: !Join [" ", [EC2, instance, in, test, env ] ]
+     SecurityGroups:
+       - !Ref Ec2SecurityGroup    
+ Ec2SecurityGroup:
+   Type: AWS::EC2::SecurityGroup
+   Properties:
+     GroupName: 
+     GroupDescription: Enable SSH access at port 22
+     SecurityGroupIngress:
+       - IpProtocol: tcp
+         FromPort: '22'
+         ToPort: '22'
+         CidrIp: 0.0.0.0/0
+          
