@@ -1,0 +1,46 @@
+#Pseduo Parameters in CloudFormation
+#These parameters are predefine by CloudFormation similar to Env variables.
+#Common Pseduo parametes use in CloudFormation
+#
+#!Ref AWS::Region
+#!Ref AWS::AccoundId
+#!Ref AWS::NotificationARNs
+#!Ref AWS::StackId
+#!Ref AWS::StackName
+
+
+Resources:
+ myEC2Instance:
+   Type: AWS::EC2::Instance
+   Properties:
+     KeyName: ec2-key
+     ImageId: ami-43874721
+     InstanceType: t2.micro
+     Monitoring: true
+     UserData: !Base64 |
+       !/bin/bash -ex
+       sudo apt-get update && apt-get upgrade -y
+       sudo yum install httpd -y
+       sudo systemctl start httpd
+       echo "Launched Webs server on EC2 Instance" > /var/www/html/index.html
+     Tags:
+       - Key: Name
+         Value: !Join
+            - " "
+            -  - ["Web App Hosted in "]
+               - !Ref AWS::Region 
+  webSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: web-sg
+      GroupDescription: Enable SSH and Public access to web Application
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: 0.0.0.0/0   
+          
