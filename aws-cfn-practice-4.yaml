@@ -1,0 +1,34 @@
+#Using input parameters creating instance and get PublicDnsName
+# using Output
+
+Parameters:
+ KeyPair:
+  Description: "Will allow to select available keys from the dropdown while creating stack"
+  Type: AWS::EC2::KeyPair::KeyName  
+ InstanceType:
+  Description: "Ec2 Instance Type"
+  Type: String
+  Default: "t3.micro"
+  Allowevalues:
+   - "t2.micro"
+   - "m1.large"
+   - "m2.small"
+Resources:
+ myEC2Instance:
+   Type: AWS::EC2::Instance
+   Properties:
+     KeyName: !Ref KeyPair
+     ImageId: ami-2f736546
+     InstanceType: 
+       Ref: instanceType
+     Monitoring: true
+     SecurityGroupIds:
+       - sg-id
+     Tags:
+       - Key: Name
+         Value: "Ec2-instance"
+Outputs:
+  ServerName:
+   Value: !GetAtt 
+    - myEC2Instance
+    - PublicDnsName         
