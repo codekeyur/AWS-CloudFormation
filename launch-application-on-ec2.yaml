@@ -1,0 +1,64 @@
+#Starting Service
+#Configured and create user and groups
+#Downloding and Installing application
+#Downloading and Installing dependencies/packages
+# These task can be done by using Userdata property of EC2
+# and also using help script of cfn (cf-init here)
+Resources: 
+ myEC2Instance:
+  Type: AWS::EC2::Instance
+  Metadata:
+   AWS::CloudFormation::Init:
+     #installing httpd and php using from yum repo
+     config:
+       packages:        
+         yum:
+          httpd: [ ]
+          php: [ ]
+         #creating index.php and writng the content of the file
+         files:
+          /var/www/html/index.php:
+           content: !Sub |
+             <?php print "Web App Launched using CloudFormation Service!" ; ?> 
+         #making sure that httpds is enable and run as instance launch  
+        services:
+         sysvinit:
+           httpd:
+             enabled: true
+             ensureRunning: true  
+    Properties:
+     KeyName: 
+     DisableApiTermination: 
+     ImageId: ami-2f736546
+     InstanceType: t2.micro
+     Monitoring: true
+     SecurityGroupIds:
+      - !Ref ec2SecurityGroup
+     UserData: 
+     'Fn::Base64':
+      !Sub |                    #allows to run sudo parameters and use them to get Stackname and region and look for the metadata section   
+        #!/bin/bash -ex
+        yum install -y aws-cfn-bootstrap
+        /opt/aws/bin/cfn-init -v -stack ${AWS::StackName} --resource myEC2Instance --region ${AWS::Region}
+     Tags:
+      - Key: Name
+        Value: "Web Application"
+
+    ec2SecurityGroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupName: web-security-grp
+        GroupDescription: "Open Port 22 and 80"
+        SecurityGroupIngress:
+          - IpProtocol: tcp
+            FromPort: "22"
+            ToPort: "22"
+            CidrIp: 0.0.0.0/0
+          - IpProtocol: tcp
+            FromPort: 80
+            ToPort: 80
+            CidrIp: 0.0.0.0/0  
+Outputs:
+  Website:
+    Description: Public DNS of WebSite
+    Value: !Sub 'http://${myEC2Instance.PublicDnsName}' 
